@@ -1,0 +1,411 @@
+import React, { useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Calculator, TrendingUp, Sparkles, Wallet } from 'lucide-react';
+
+const formatKzt = (value) => {
+  const num = Number(value || 0);
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'KZT',
+    maximumFractionDigits: 0,
+  }).format(num);
+};
+
+const formatKzt2 = (value) => {
+  const num = Number(value || 0);
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'KZT',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+};
+
+const formatNum = (value, digits = 2) =>
+  new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(Number(value || 0));
+
+const initialProcedures = [
+  {
+    id: 1,
+    name: 'Плазменное омоложение лица',
+    price: 120000,
+    impulses: 300,
+    materials: 2000,
+    countPerMonth: 8,
+  },
+  {
+    id: 2,
+    name: 'Плазменное омоложение шеи',
+    price: 98000,
+    impulses: 300,
+    materials: 2000,
+    countPerMonth: 8,
+  },
+  {
+    id: 3,
+    name: 'Лифтинг области век',
+    price: 98000,
+    impulses: 200,
+    materials: 2000,
+    countPerMonth: 8,
+  },
+  {
+    id: 4,
+    name: 'Лечение акне',
+    price: 39000,
+    impulses: 100,
+    materials: 2000,
+    countPerMonth: 8,
+  },
+  {
+    id: 5,
+    name: 'Лечение розацеа',
+    price: 39000,
+    impulses: 100,
+    materials: 2000,
+    countPerMonth: 8,
+  },
+];
+
+function NumberField({ label, value, onChange, step = 'any' }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm text-slate-600">{label}</Label>
+      <Input
+        type="number"
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="rounded-2xl"
+      />
+    </div>
+  );
+}
+
+export default function NeogenPaybackCalculator() {
+  const [equipmentCost, setEquipmentCost] = useState(29200000);
+  const [tipCost, setTipCost] = useState(89000);
+  const [tipResource, setTipResource] = useState(2500);
+  const [nitrogenCost, setNitrogenCost] = useState(70000);
+  const [nitrogenMonths, setNitrogenMonths] = useState(12);
+  const [nitrogenImpulsesPerMonth, setNitrogenImpulsesPerMonth] = useState(10000);
+  const [handleCost, setHandleCost] = useState(2100000);
+  const [handleResource, setHandleResource] = useState(250000);
+  const [salaryPercent, setSalaryPercent] = useState(30);
+  const [procedures, setProcedures] = useState(initialProcedures);
+
+  const metrics = useMemo(() => {
+    const tipImpulseCost = tipCost / tipResource;
+    const nitrogenImpulseCost = nitrogenCost / (nitrogenMonths * nitrogenImpulsesPerMonth);
+    const handleImpulseCost = handleCost / handleResource;
+    const impulseCost = tipImpulseCost + nitrogenImpulseCost + handleImpulseCost;
+
+    const enriched = procedures.map((p) => {
+      const impulseExpenses = p.impulses * impulseCost;
+      const totalExpenses = impulseExpenses + p.materials;
+      const profitPerProcedure = p.price - totalExpenses;
+      const monthlyProfit = profitPerProcedure * p.countPerMonth;
+      const monthlyRevenue = p.price * p.countPerMonth;
+      return {
+        ...p,
+        impulseExpenses,
+        totalExpenses,
+        profitPerProcedure,
+        monthlyProfit,
+        monthlyRevenue,
+      };
+    });
+
+    const totalMonthlyRevenue = enriched.reduce((sum, p) => sum + p.monthlyRevenue, 0);
+    const totalMonthlyProfitBeforeSalary = enriched.reduce((sum, p) => sum + p.monthlyProfit, 0);
+    const salaryCost = totalMonthlyRevenue * (salaryPercent / 100);
+    const netMonthlyProfit = totalMonthlyProfitBeforeSalary - salaryCost;
+    const paybackMonths = netMonthlyProfit > 0 ? equipmentCost / netMonthlyProfit : 0;
+
+    return {
+      tipImpulseCost,
+      nitrogenImpulseCost,
+      handleImpulseCost,
+      impulseCost,
+      enriched,
+      totalMonthlyRevenue,
+      totalMonthlyProfitBeforeSalary,
+      salaryCost,
+      netMonthlyProfit,
+      paybackMonths,
+    };
+  }, [
+    equipmentCost,
+    tipCost,
+    tipResource,
+    nitrogenCost,
+    nitrogenMonths,
+    nitrogenImpulsesPerMonth,
+    handleCost,
+    handleResource,
+    salaryPercent,
+    procedures,
+  ]);
+
+  const updateProcedure = (id, field, value) => {
+    setProcedures((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: Number(value) || 0 } : item))
+    );
+  };
+
+  const updateProcedureName = (id, value) => {
+    setProcedures((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, name: value } : item))
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <Badge className="rounded-full px-3 py-1 text-sm">NEOGEN</Badge>
+                <Badge variant="outline" className="rounded-full px-3 py-1 text-sm">Калькулятор окупаемости</Badge>
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+                План окупаемости системы NEOGEN
+              </h1>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 md:text-base">
+                Интерактивная веб-версия с формулами: меняйте стоимость оборудования, расходников,
+                параметры процедур и нагрузку — все показатели пересчитываются автоматически.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-slate-900 p-4 text-white shadow-sm">
+                <div className="mb-1 flex items-center gap-2 text-sm text-slate-300">
+                  <Wallet className="h-4 w-4" /> Оборудование
+                </div>
+                <div className="text-2xl font-semibold">{formatKzt(equipmentCost)}</div>
+              </div>
+              <div className="rounded-2xl bg-emerald-600 p-4 text-white shadow-sm">
+                <div className="mb-1 flex items-center gap-2 text-sm text-emerald-100">
+                  <TrendingUp className="h-4 w-4" /> Окупаемость
+                </div>
+                <div className="text-2xl font-semibold">{formatNum(metrics.paybackMonths, 1)} мес.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card className="rounded-3xl border-0 shadow-sm ring-1 ring-slate-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Calculator className="h-5 w-5" /> Исходные параметры
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div>
+                <h3 className="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
+                  Оборудование
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <NumberField label="Стоимость аппарата, ₸" value={equipmentCost} onChange={setEquipmentCost} />
+                  <NumberField label="Зарплата персонала, % от выручки" value={salaryPercent} onChange={setSalaryPercent} />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
+                  Расходы на 1 импульс
+                </h3>
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-4 rounded-2xl bg-slate-50 p-4">
+                    <div className="font-medium text-slate-900">Насадка</div>
+                    <NumberField label="Стоимость насадки, ₸" value={tipCost} onChange={setTipCost} />
+                    <NumberField label="Ресурс насадки, имп." value={tipResource} onChange={setTipResource} />
+                    <div className="text-sm text-slate-600">
+                      Формула: стоимость насадки / ресурс = <span className="font-semibold">{formatKzt2(metrics.tipImpulseCost)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4 rounded-2xl bg-slate-50 p-4">
+                    <div className="font-medium text-slate-900">Азот</div>
+                    <NumberField label="Стоимость азота, ₸" value={nitrogenCost} onChange={setNitrogenCost} />
+                    <NumberField label="Срок использования, мес." value={nitrogenMonths} onChange={setNitrogenMonths} />
+                    <NumberField label="Импульсов в месяц" value={nitrogenImpulsesPerMonth} onChange={setNitrogenImpulsesPerMonth} />
+                    <div className="text-sm text-slate-600">
+                      Формула: стоимость азота / (мес. × имп./мес.) = <span className="font-semibold">{formatKzt2(metrics.nitrogenImpulseCost)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4 rounded-2xl bg-slate-50 p-4">
+                    <div className="font-medium text-slate-900">Рукоятка</div>
+                    <NumberField label="Стоимость рукоятки, ₸" value={handleCost} onChange={setHandleCost} />
+                    <NumberField label="Ресурс рукоятки, имп." value={handleResource} onChange={setHandleResource} />
+                    <div className="text-sm text-slate-600">
+                      Формула: стоимость рукоятки / ресурс = <span className="font-semibold">{formatKzt2(metrics.handleImpulseCost)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="rounded-3xl border-0 shadow-sm ring-1 ring-slate-200">
+              <CardHeader>
+                <CardTitle className="text-xl">Себестоимость импульса</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-2xl bg-slate-900 p-6 text-white">
+                  <div className="text-sm text-slate-300">Итоговая формула</div>
+                  <div className="mt-2 text-3xl font-semibold">{formatKzt2(metrics.impulseCost)}</div>
+                  <div className="mt-3 text-sm leading-6 text-slate-300">
+                    {formatKzt2(metrics.tipImpulseCost)} + {formatKzt2(metrics.nitrogenImpulseCost)} + {formatKzt2(metrics.handleImpulseCost)}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-3xl border-0 shadow-sm ring-1 ring-slate-200">
+              <CardHeader>
+                <CardTitle className="text-xl">Итоги по бизнес-модели</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Общая выручка в месяц</div>
+                  <div className="mt-1 text-2xl font-semibold text-slate-900">{formatKzt(metrics.totalMonthlyRevenue)}</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Прибыль до оплаты труда</div>
+                  <div className="mt-1 text-2xl font-semibold text-slate-900">{formatKzt(metrics.totalMonthlyProfitBeforeSalary)}</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Оплата труда ({formatNum(salaryPercent, 0)}%)</div>
+                  <div className="mt-1 text-2xl font-semibold text-slate-900">{formatKzt(metrics.salaryCost)}</div>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+                  <div className="text-sm text-emerald-700">Чистый доход в месяц</div>
+                  <div className="mt-1 text-3xl font-semibold text-emerald-800">{formatKzt(metrics.netMonthlyProfit)}</div>
+                </div>
+                <div className="rounded-2xl bg-blue-50 p-4 ring-1 ring-blue-200">
+                  <div className="text-sm text-blue-700">Срок окупаемости</div>
+                  <div className="mt-1 text-3xl font-semibold text-blue-800">{formatNum(metrics.paybackMonths, 1)} мес.</div>
+                  <div className="mt-2 text-sm text-blue-700">
+                    Формула: стоимость оборудования / чистый доход в месяц
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <Card className="rounded-3xl border-0 shadow-sm ring-1 ring-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Sparkles className="h-5 w-5" /> Типовые процедуры
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Процедура</TableHead>
+                    <TableHead>Цена, ₸</TableHead>
+                    <TableHead>Импульсы</TableHead>
+                    <TableHead>Расх. материалы, ₸</TableHead>
+                    <TableHead>Кол-во в мес.</TableHead>
+                    <TableHead>Расходы на процедуру</TableHead>
+                    <TableHead>Доход с 1 процедуры</TableHead>
+                    <TableHead>Доход в месяц</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {metrics.enriched.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="min-w-[260px]">
+                        <Input
+                          value={p.name}
+                          onChange={(e) => updateProcedureName(p.id, e.target.value)}
+                          className="rounded-xl"
+                        />
+                      </TableCell>
+                      <TableCell className="min-w-[130px]">
+                        <Input
+                          type="number"
+                          value={p.price}
+                          onChange={(e) => updateProcedure(p.id, 'price', e.target.value)}
+                          className="rounded-xl"
+                        />
+                      </TableCell>
+                      <TableCell className="min-w-[110px]">
+                        <Input
+                          type="number"
+                          value={p.impulses}
+                          onChange={(e) => updateProcedure(p.id, 'impulses', e.target.value)}
+                          className="rounded-xl"
+                        />
+                      </TableCell>
+                      <TableCell className="min-w-[150px]">
+                        <Input
+                          type="number"
+                          value={p.materials}
+                          onChange={(e) => updateProcedure(p.id, 'materials', e.target.value)}
+                          className="rounded-xl"
+                        />
+                      </TableCell>
+                      <TableCell className="min-w-[120px]">
+                        <Input
+                          type="number"
+                          value={p.countPerMonth}
+                          onChange={(e) => updateProcedure(p.id, 'countPerMonth', e.target.value)}
+                          className="rounded-xl"
+                        />
+                      </TableCell>
+                      <TableCell>{formatKzt(Math.round(p.totalExpenses))}</TableCell>
+                      <TableCell>{formatKzt(Math.round(p.profitPerProcedure))}</TableCell>
+                      <TableCell>{formatKzt(Math.round(p.monthlyProfit))}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-0 shadow-sm ring-1 ring-slate-200">
+          <CardHeader>
+            <CardTitle className="text-xl">Логика формул</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                <div className="mb-2 font-semibold text-slate-900">1. Стоимость импульса</div>
+                Стоимость насадки / её ресурс + стоимость азота / (срок в месяцах × импульсы в месяц) + стоимость рукоятки / её ресурс.
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                <div className="mb-2 font-semibold text-slate-900">2. Расходы на процедуру</div>
+                Количество импульсов × стоимость импульса + расходные материалы на процедуру.
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                <div className="mb-2 font-semibold text-slate-900">3. Доход по процедуре</div>
+                Цена процедуры − расходы на процедуру. Месячный доход = доход с 1 процедуры × количество процедур в месяц.
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                <div className="mb-2 font-semibold text-slate-900">4. Окупаемость</div>
+                Чистый доход в месяц = суммарный доход по процедурам − фонд оплаты труда. Срок окупаемости = стоимость оборудования / чистый доход в месяц.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
