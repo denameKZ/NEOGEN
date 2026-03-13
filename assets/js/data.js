@@ -20,7 +20,7 @@ window.NEOGEN_DEFAULTS = {
     {
       id: 2,
       name: 'Плазменное омоложение шеи',
-      price: 10000,
+      price: 100000,
       impulses: 400,
       materials: 2000,
       countPerMonth: 10,
