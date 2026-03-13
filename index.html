@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEOGEN — Калькулятор окупаемости</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero card">
+      <div class="hero__content">
+        <div class="badges">
+          <span class="badge badge--solid">NEOGEN</span>
+          <span class="badge badge--outline">Калькулятор окупаемости</span>
+        </div>
+        <h1>План окупаемости системы NEOGEN</h1>
+        <p>
+          Интерактивная веб-версия с формулами: меняйте стоимость оборудования, расходников,
+          параметры процедур и нагрузку — все показатели пересчитываются автоматически.
+        </p>
+      </div>
+      <div class="hero__metrics">
+        <div class="metric metric--dark">
+          <div class="metric__label">Стоимость оборудования</div>
+          <div class="metric__value" id="equipmentCostCard">0 ₸</div>
+        </div>
+        <div class="metric metric--green">
+          <div class="metric__label">Срок окупаемости</div>
+          <div class="metric__value" id="paybackCard">0 мес.</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout-grid">
+      <section class="card">
+        <div class="card__header">
+          <h2>Исходные параметры</h2>
+        </div>
+        <div class="card__body section-stack">
+          <section>
+            <h3 class="section-title">Оборудование</h3>
+            <div class="input-grid input-grid--2">
+              <label class="field">
+                <span>Стоимость аппарата, ₸</span>
+                <input type="number" id="equipmentCost" />
+              </label>
+              <label class="field">
+                <span>Зарплата персонала, % от выручки</span>
+                <input type="number" id="salaryPercent" />
+              </label>
+            </div>
+          </section>
+
+          <section>
+            <h3 class="section-title">Расходы на 1 импульс</h3>
+            <div class="cost-cards">
+              <article class="subcard">
+                <h4>Насадка</h4>
+                <label class="field">
+                  <span>Стоимость насадки, ₸</span>
+                  <input type="number" id="tipCost" />
+                </label>
+                <label class="field">
+                  <span>Ресурс насадки, имп.</span>
+                  <input type="number" id="tipResource" />
+                </label>
+                <p class="formula-note">Формула: стоимость насадки / ресурс = <strong id="tipImpulseCost">0 ₸</strong></p>
+              </article>
+
+              <article class="subcard">
+                <h4>Азот</h4>
+                <label class="field">
+                  <span>Стоимость азота, ₸</span>
+                  <input type="number" id="nitrogenCost" />
+                </label>
+                <label class="field">
+                  <span>Срок использования, мес.</span>
+                  <input type="number" id="nitrogenMonths" />
+                </label>
+                <label class="field">
+                  <span>Импульсов в месяц</span>
+                  <input type="number" id="nitrogenImpulsesPerMonth" />
+                </label>
+                <p class="formula-note">Формула: стоимость азота / (мес. × имп./мес.) = <strong id="nitrogenImpulseCost">0 ₸</strong></p>
+              </article>
+
+              <article class="subcard">
+                <h4>Рукоятка</h4>
+                <label class="field">
+                  <span>Стоимость рукоятки, ₸</span>
+                  <input type="number" id="handleCost" />
+                </label>
+                <label class="field">
+                  <span>Ресурс рукоятки, имп.</span>
+                  <input type="number" id="handleResource" />
+                </label>
+                <p class="formula-note">Формула: стоимость рукоятки / ресурс = <strong id="handleImpulseCost">0 ₸</strong></p>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="sidebar-stack">
+        <article class="card">
+          <div class="card__header"><h2>Себестоимость импульса</h2></div>
+          <div class="card__body">
+            <div class="highlight-box highlight-box--dark">
+              <div class="highlight-box__label">Итоговая формула</div>
+              <div class="highlight-box__value" id="impulseCost">0 ₸</div>
+              <div class="highlight-box__formula" id="impulseFormula">0 + 0 + 0</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card__header"><h2>Итоги по бизнес-модели</h2></div>
+          <div class="card__body stack-sm">
+            <div class="stat-box">
+              <div class="stat-box__label">Общая выручка в месяц</div>
+              <div class="stat-box__value" id="totalMonthlyRevenue">0 ₸</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box__label">Прибыль до оплаты труда</div>
+              <div class="stat-box__value" id="totalMonthlyProfitBeforeSalary">0 ₸</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box__label">Оплата труда</div>
+              <div class="stat-box__value" id="salaryCost">0 ₸</div>
+            </div>
+            <div class="stat-box stat-box--green">
+              <div class="stat-box__label">Чистый доход в месяц</div>
+              <div class="stat-box__value" id="netMonthlyProfit">0 ₸</div>
+            </div>
+            <div class="stat-box stat-box--blue">
+              <div class="stat-box__label">Срок окупаемости</div>
+              <div class="stat-box__value" id="paybackMonths">0 мес.</div>
+              <div class="stat-box__hint">Формула: стоимость оборудования / чистый доход в месяц</div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <section class="card full-width">
+      <div class="card__header">
+        <h2>Типовые процедуры</h2>
+      </div>
+      <div class="card__body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Процедура</th>
+                <th>Цена, ₸</th>
+                <th>Импульсы</th>
+                <th>Расх. материалы, ₸</th>
+                <th>Кол-во в мес.</th>
+                <th>Расходы на процедуру</th>
+                <th>Доход с 1 процедуры</th>
+                <th>Доход в месяц</th>
+              </tr>
+            </thead>
+            <tbody id="proceduresTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full-width">
+      <div class="card__header">
+        <h2>Логика формул</h2>
+      </div>
+      <div class="card__body formula-grid">
+        <article class="formula-card">
+          <h3>1. Стоимость импульса</h3>
+          <p>Стоимость насадки / её ресурс + стоимость азота / (срок в месяцах × импульсы в месяц) + стоимость рукоятки / её ресурс.</p>
+        </article>
+        <article class="formula-card">
+          <h3>2. Расходы на процедуру</h3>
+          <p>Количество импульсов × стоимость импульса + расходные материалы на процедуру.</p>
+        </article>
+        <article class="formula-card">
+          <h3>3. Доход по процедуре</h3>
+          <p>Цена процедуры − расходы на процедуру. Месячный доход = доход с 1 процедуры × количество процедур в месяц.</p>
+        </article>
+        <article class="formula-card">
+          <h3>4. Окупаемость</h3>
+          <p>Чистый доход в месяц = суммарный доход по процедурам − фонд оплаты труда. Срок окупаемости = стоимость оборудования / чистый доход в месяц.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/calculator.js"></script>
+</body>
+</html>
